@@ -1,0 +1,7 @@
+customer-service/.claude/settings.local.json
+customer-service/nul
+customer-service/target/*
+
+order-service/.claude/settings.local.json
+order-service/target/*
+order-service/nul
