@@ -32,7 +32,10 @@ public class CustomerDTO {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
-    @Schema(description = "Customer email address", example = "john.doe@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(
+            description = "Customer email address",
+            example = "john.doe@example.com",
+            requiredMode = Schema.RequiredMode.REQUIRED)
     private String email;
 
     @Past(message = "Date of birth must be in the past")

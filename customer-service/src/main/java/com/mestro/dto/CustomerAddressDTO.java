@@ -22,7 +22,11 @@ public class CustomerAddressDTO {
     private Long customerId;
 
     @NotBlank(message = "Address type is required")
-    @Schema(description = "Type of address", example = "HOME", allowableValues = {"HOME", "WORK", "BILLING", "SHIPPING"}, requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(
+            description = "Type of address",
+            example = "HOME",
+            allowableValues = {"HOME", "WORK", "BILLING", "SHIPPING"},
+            requiredMode = Schema.RequiredMode.REQUIRED)
     private String addressType;
 
     @NotBlank(message = "Street is required")

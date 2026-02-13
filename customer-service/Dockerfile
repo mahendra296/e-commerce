@@ -1,29 +1,28 @@
 # ---------- Stage 1: Build ----------
-FROM maven:3.9-eclipse-temurin-25 AS builder
+FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
-# Copy pom first (better layer caching)
-COPY pom.xml .
+# Install common-service to local Maven repo
+COPY common-service /app/common-service
+RUN cd /app/common-service && mvn clean install -DskipTests
+
+# Copy service pom and resolve dependencies
+WORKDIR /app/service
+COPY customer-service/pom.xml .
 RUN mvn dependency:go-offline
 
-# Copy source code
-COPY src ./src
-
-# Build the application
+# Copy source code and build
+COPY customer-service/src ./src
 RUN mvn clean package -DskipTests
 
-
 # ---------- Stage 2: Runtime ----------
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Copy jar from builder stage
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=builder /app/service/target/*.jar app.jar
 
-# Expose port
 EXPOSE 8081
 
-# Run the app
 ENTRYPOINT ["java", "-jar", "app.jar"]

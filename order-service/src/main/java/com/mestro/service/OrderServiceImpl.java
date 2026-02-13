@@ -1,11 +1,12 @@
 package com.mestro.service;
 
+import com.mestro.common.enums.CommonErrorCode;
+import com.mestro.common.exception.BusinessException;
+import com.mestro.common.exception.ResourceNotFoundException;
 import com.mestro.dto.OrderDTO;
 import com.mestro.dto.OrderItemDTO;
-import com.mestro.enums.ErrorCode;
+import com.mestro.enums.OrderErrorCode;
 import com.mestro.enums.OrderStatus;
-import com.mestro.exceptions.BusinessException;
-import com.mestro.exceptions.ResourceNotFoundException;
 import com.mestro.model.Order;
 import com.mestro.model.OrderItem;
 import com.mestro.repository.OrderRepository;
@@ -33,7 +34,7 @@ public class OrderServiceImpl implements OrderService {
 
         // Validate order items
         if (orderDTO.getOrderItems() == null || orderDTO.getOrderItems().isEmpty()) {
-            throw new BusinessException(ErrorCode.VALIDATION_ERROR, "Order must contain at least one item");
+            throw new BusinessException(CommonErrorCode.VALIDATION_ERROR, "Order must contain at least one item");
         }
 
         // Create order entity
@@ -73,7 +74,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository
                 .findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
+                        OrderErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
         return convertToDTO(order);
     }
 
@@ -119,12 +120,13 @@ public class OrderServiceImpl implements OrderService {
         Order existingOrder = orderRepository
                 .findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
+                        OrderErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
 
         // Check if order can be updated
         if (existingOrder.getStatus() == OrderStatus.DELIVERED || existingOrder.getStatus() == OrderStatus.CANCELLED) {
             throw new BusinessException(
-                    ErrorCode.ORDER_CANNOT_BE_UPDATED, "Cannot update order with status: " + existingOrder.getStatus());
+                    OrderErrorCode.ORDER_CANNOT_BE_UPDATED,
+                    "Cannot update order with status: " + existingOrder.getStatus());
         }
 
         // Update order fields
@@ -163,7 +165,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository
                 .findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
+                        OrderErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
 
         // Validate status transition
         validateStatusTransition(order.getStatus(), status);
@@ -183,12 +185,12 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository
                 .findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
+                        OrderErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
 
         // Only allow deletion of pending orders
         if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CANCELLED) {
             throw new BusinessException(
-                    ErrorCode.ORDER_CANNOT_BE_DELETED, "Can only delete orders with PENDING or CANCELLED status");
+                    OrderErrorCode.ORDER_CANNOT_BE_DELETED, "Can only delete orders with PENDING or CANCELLED status");
         }
 
         orderRepository.delete(order);
@@ -219,11 +221,13 @@ public class OrderServiceImpl implements OrderService {
     private void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
         // Add business logic for valid status transitions
         if (currentStatus == OrderStatus.DELIVERED || currentStatus == OrderStatus.CANCELLED) {
-            throw new BusinessException(ErrorCode.INVALID_ORDER_STATUS, "Cannot change status from " + currentStatus);
+            throw new BusinessException(
+                    OrderErrorCode.INVALID_ORDER_STATUS, "Cannot change status from " + currentStatus);
         }
 
         if (currentStatus == OrderStatus.SHIPPED && newStatus == OrderStatus.PENDING) {
-            throw new BusinessException(ErrorCode.INVALID_ORDER_STATUS, "Cannot move from SHIPPED back to PENDING");
+            throw new BusinessException(
+                    OrderErrorCode.INVALID_ORDER_STATUS, "Cannot move from SHIPPED back to PENDING");
         }
     }
 }

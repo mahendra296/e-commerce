@@ -1,6 +1,6 @@
 package com.mestro.controller;
 
-import com.mestro.dto.ApiResponse;
+import com.mestro.common.dto.ApiResponse;
 import com.mestro.dto.OrderDTO;
 import com.mestro.enums.OrderStatus;
 import com.mestro.service.OrderService;

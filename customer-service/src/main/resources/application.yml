@@ -27,3 +27,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         use_sql_comments: true
+
+openapi:
+  title: Customer Service API
+  description: RESTful API for managing customers and customer addresses
+  version: 1.0.0
+  server-url: http://localhost:8081
