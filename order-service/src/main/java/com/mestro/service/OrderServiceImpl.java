@@ -1,15 +1,20 @@
 package com.mestro.service;
 
+import com.mestro.common.client.ProductServiceClient;
+import com.mestro.common.dto.ApiResponse;
+import com.mestro.common.dto.ProductResponse;
+import com.mestro.common.enums.CommonErrorCode;
+import com.mestro.common.exception.BusinessException;
+import com.mestro.common.exception.ResourceNotFoundException;
 import com.mestro.dto.OrderDTO;
 import com.mestro.dto.OrderItemDTO;
-import com.mestro.enums.ErrorCode;
+import com.mestro.enums.OrderErrorCode;
 import com.mestro.enums.OrderStatus;
-import com.mestro.exceptions.BusinessException;
-import com.mestro.exceptions.ResourceNotFoundException;
 import com.mestro.model.Order;
 import com.mestro.model.OrderItem;
 import com.mestro.repository.OrderRepository;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +30,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final ModelMapper modelMapper;
+    private final ProductServiceClient productServiceClient;
 
     @Override
     @Transactional
@@ -33,8 +39,11 @@ public class OrderServiceImpl implements OrderService {
 
         // Validate order items
         if (orderDTO.getOrderItems() == null || orderDTO.getOrderItems().isEmpty()) {
-            throw new BusinessException(ErrorCode.VALIDATION_ERROR, "Order must contain at least one item");
+            throw new BusinessException(CommonErrorCode.VALIDATION_ERROR, "Order must contain at least one item");
         }
+
+        // Validate products and check inventory via Feign
+        validateProductsAndInventory(orderDTO.getOrderItems());
 
         // Create order entity
         Order order = Order.builder()
@@ -61,8 +70,11 @@ public class OrderServiceImpl implements OrderService {
 
         // Save order
         Order savedOrder = orderRepository.save(order);
-        log.info("Order created successfully with ID: {}", savedOrder.getId());
 
+        // Reserve inventory for each order item
+        reserveInventoryForOrder(orderDTO.getOrderItems());
+
+        log.info("Order created successfully with ID: {}", savedOrder.getId());
         return convertToDTO(savedOrder);
     }
 
@@ -73,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository
                 .findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
+                        OrderErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
         return convertToDTO(order);
     }
 
@@ -119,12 +131,13 @@ public class OrderServiceImpl implements OrderService {
         Order existingOrder = orderRepository
                 .findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
+                        OrderErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
 
         // Check if order can be updated
         if (existingOrder.getStatus() == OrderStatus.DELIVERED || existingOrder.getStatus() == OrderStatus.CANCELLED) {
             throw new BusinessException(
-                    ErrorCode.ORDER_CANNOT_BE_UPDATED, "Cannot update order with status: " + existingOrder.getStatus());
+                    OrderErrorCode.ORDER_CANNOT_BE_UPDATED,
+                    "Cannot update order with status: " + existingOrder.getStatus());
         }
 
         // Update order fields
@@ -163,10 +176,15 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository
                 .findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
+                        OrderErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
 
         // Validate status transition
         validateStatusTransition(order.getStatus(), status);
+
+        // Release inventory when order is cancelled
+        if (status == OrderStatus.CANCELLED) {
+            releaseInventoryForOrder(order);
+        }
 
         order.setStatus(status);
         Order updatedOrder = orderRepository.save(order);
@@ -183,12 +201,12 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository
                 .findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
+                        OrderErrorCode.ORDER_NOT_FOUND, "Order not found with ID: " + orderId));
 
         // Only allow deletion of pending orders
         if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CANCELLED) {
             throw new BusinessException(
-                    ErrorCode.ORDER_CANNOT_BE_DELETED, "Can only delete orders with PENDING or CANCELLED status");
+                    OrderErrorCode.ORDER_CANNOT_BE_DELETED, "Can only delete orders with PENDING or CANCELLED status");
         }
 
         orderRepository.delete(order);
@@ -200,6 +218,108 @@ public class OrderServiceImpl implements OrderService {
     public Long getOrderCountByCustomerId(Long customerId) {
         log.info("Counting orders for customer ID: {}", customerId);
         return orderRepository.countByCustomerId(customerId);
+    }
+
+    // Feign integration methods
+    private void validateProductsAndInventory(List<OrderItemDTO> orderItems) {
+        for (OrderItemDTO item : orderItems) {
+            // Validate product exists
+            try {
+                ApiResponse<ProductResponse> response = productServiceClient.getProductById(item.getProductId());
+                if (!response.isSuccess() || response.getData() == null) {
+                    throw new BusinessException(
+                            CommonErrorCode.VALIDATION_ERROR, "Product not found with ID: " + item.getProductId());
+                }
+
+                ProductResponse product = response.getData();
+                if (!product.getIsActive()) {
+                    throw new BusinessException(
+                            CommonErrorCode.VALIDATION_ERROR, "Product is not active: " + product.getName());
+                }
+
+                // Set product name from product service if not provided
+                if (item.getProductName() == null || item.getProductName().isBlank()) {
+                    item.setProductName(product.getName());
+                }
+            } catch (BusinessException e) {
+                throw e;
+            } catch (Exception e) {
+                log.error("Error validating product ID: {}", item.getProductId(), e);
+                throw new BusinessException(
+                        CommonErrorCode.VALIDATION_ERROR,
+                        "Unable to validate product with ID: " + item.getProductId()
+                                + ". Product service may be unavailable.");
+            }
+
+            // Check inventory availability
+            try {
+                ApiResponse<Integer> inventoryResponse =
+                        productServiceClient.getTotalAvailableQuantity(item.getProductId());
+                if (inventoryResponse.isSuccess() && inventoryResponse.getData() != null) {
+                    int available = inventoryResponse.getData();
+                    if (available < item.getQuantity()) {
+                        throw new BusinessException(
+                                CommonErrorCode.VALIDATION_ERROR,
+                                "Insufficient stock for product ID: " + item.getProductId() + ". Available: "
+                                        + available + ", Requested: " + item.getQuantity());
+                    }
+                }
+            } catch (BusinessException e) {
+                throw e;
+            } catch (Exception e) {
+                log.error("Error checking inventory for product ID: {}", item.getProductId(), e);
+                throw new BusinessException(
+                        CommonErrorCode.VALIDATION_ERROR,
+                        "Unable to check inventory for product ID: " + item.getProductId()
+                                + ". Product service may be unavailable.");
+            }
+        }
+    }
+
+    private void reserveInventoryForOrder(List<OrderItemDTO> orderItems) {
+        List<OrderItemDTO> reserved = new ArrayList<>();
+        try {
+            for (OrderItemDTO item : orderItems) {
+                productServiceClient.reserveByProductId(item.getProductId(), item.getQuantity());
+                reserved.add(item);
+                log.info(
+                        "Inventory reserved for product ID: {}, quantity: {}", item.getProductId(), item.getQuantity());
+            }
+        } catch (Exception e) {
+            // Rollback already reserved inventory
+            log.error("Error reserving inventory, rolling back reservations", e);
+            for (OrderItemDTO reservedItem : reserved) {
+                try {
+                    productServiceClient.releaseByProductId(reservedItem.getProductId(), reservedItem.getQuantity());
+                } catch (Exception rollbackEx) {
+                    log.error(
+                            "Failed to rollback inventory reservation for product ID: {}",
+                            reservedItem.getProductId(),
+                            rollbackEx);
+                }
+            }
+            throw new BusinessException(
+                    CommonErrorCode.INTERNAL_SERVER_ERROR, "Failed to reserve inventory: " + e.getMessage());
+        }
+    }
+
+    private void releaseInventoryForOrder(Order order) {
+        if (order.getOrderItems() != null) {
+            for (OrderItem item : order.getOrderItems()) {
+                try {
+                    productServiceClient.releaseByProductId(item.getProductId(), item.getQuantity());
+                    log.info(
+                            "Inventory released for product ID: {}, quantity: {}",
+                            item.getProductId(),
+                            item.getQuantity());
+                } catch (Exception e) {
+                    log.error(
+                            "Failed to release inventory for product ID: {}. Manual intervention may be required.",
+                            item.getProductId(),
+                            e);
+                }
+            }
+        }
     }
 
     // Helper methods
@@ -219,11 +339,13 @@ public class OrderServiceImpl implements OrderService {
     private void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
         // Add business logic for valid status transitions
         if (currentStatus == OrderStatus.DELIVERED || currentStatus == OrderStatus.CANCELLED) {
-            throw new BusinessException(ErrorCode.INVALID_ORDER_STATUS, "Cannot change status from " + currentStatus);
+            throw new BusinessException(
+                    OrderErrorCode.INVALID_ORDER_STATUS, "Cannot change status from " + currentStatus);
         }
 
         if (currentStatus == OrderStatus.SHIPPED && newStatus == OrderStatus.PENDING) {
-            throw new BusinessException(ErrorCode.INVALID_ORDER_STATUS, "Cannot move from SHIPPED back to PENDING");
+            throw new BusinessException(
+                    OrderErrorCode.INVALID_ORDER_STATUS, "Cannot move from SHIPPED back to PENDING");
         }
     }
 }

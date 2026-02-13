@@ -5,3 +5,16 @@ customer-service/target/*
 order-service/.claude/settings.local.json
 order-service/target/*
 order-service/nul
+.claude/settings.local.json
+
+common-service/.mvn/**
+
+
+product-service/.claude/settings.local.json
+product-service/target/*
+product-service/nul
+
+
+common-service/.claude/settings.local.json
+common-service/nul
+common-service/target/*

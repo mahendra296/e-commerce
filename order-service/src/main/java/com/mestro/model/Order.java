@@ -1,17 +1,15 @@
 package com.mestro.model;
 
+import com.mestro.common.model.BaseEntity;
 import com.mestro.enums.OrderStatus;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -60,6 +58,7 @@ public class Order extends BaseEntity {
     }
 
     public void calculateTotalAmount() {
-        this.totalAmount = orderItems.stream().map(OrderItem::getSubTotalValue).reduce(BigDecimal.ZERO, BigDecimal::add);
+        this.totalAmount =
+                orderItems.stream().map(OrderItem::getSubTotalValue).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

@@ -1,5 +1,6 @@
 package com.mestro.model;
 
+import com.mestro.common.model.BaseEntity;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;

@@ -1,16 +1,14 @@
 package com.mestro.model;
 
+import com.mestro.common.model.BaseEntity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "customers")
@@ -18,7 +16,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Customer extends BaseEntity  {
+public class Customer extends BaseEntity {
 
     private String firstName;
 
@@ -38,7 +36,6 @@ public class Customer extends BaseEntity  {
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<CustomerAddress> addresses = new ArrayList<>();
-
 
     public void addAddress(CustomerAddress address) {
         addresses.add(address);

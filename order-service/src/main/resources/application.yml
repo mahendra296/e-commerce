@@ -27,3 +27,12 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         use_sql_comments: true
+
+product-service:
+  url: ${PRODUCT_SERVICE_URL:http://localhost:8083}
+
+openapi:
+  title: Order Service API
+  description: RESTful API for managing customer orders and order items
+  version: 1.0.0
+  server-url: http://localhost:8082

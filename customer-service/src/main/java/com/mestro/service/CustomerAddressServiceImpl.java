@@ -1,7 +1,7 @@
 package com.mestro.service;
 
+import com.mestro.common.exception.ResourceNotFoundException;
 import com.mestro.dto.CustomerAddressDTO;
-import com.mestro.exceptions.ResourceNotFoundException;
 import com.mestro.model.Customer;
 import com.mestro.model.CustomerAddress;
 import com.mestro.repository.CustomerAddressRepository;

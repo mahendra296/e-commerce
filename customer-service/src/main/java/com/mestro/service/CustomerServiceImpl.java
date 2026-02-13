@@ -1,8 +1,8 @@
 package com.mestro.service;
 
+import com.mestro.common.exception.DuplicateResourceException;
+import com.mestro.common.exception.ResourceNotFoundException;
 import com.mestro.dto.CustomerDTO;
-import com.mestro.exceptions.DuplicateResourceException;
-import com.mestro.exceptions.ResourceNotFoundException;
 import com.mestro.model.Customer;
 import com.mestro.repository.CustomerRepository;
 import java.util.List;
