@@ -68,6 +68,19 @@ public class ProductInventoryService {
     }
 
     @Transactional(readOnly = true)
+    public ProductInventoryDTO getInventoryByProductAndWarehouse(Long productId, Long warehouseId) {
+        log.info("Fetching inventory for product ID: {} and warehouse ID: {}", productId, warehouseId);
+
+        ProductInventory inventory = inventoryRepository
+                .findByProductIdAndWarehouseId(productId, warehouseId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ProductErrorCode.INVENTORY_NOT_FOUND,
+                        "Inventory not found for product ID: " + productId + " and warehouse ID: " + warehouseId));
+
+        return convertToDTO(inventory);
+    }
+
+    @Transactional(readOnly = true)
     public List<ProductInventoryDTO> getInventoriesByProduct(Long productId) {
         log.info("Fetching inventories for product ID: {}", productId);
 
@@ -204,6 +217,52 @@ public class ProductInventoryService {
         ProductInventory updatedInventory = inventoryRepository.save(inventory);
 
         log.info("Quantity reserved successfully for product ID: {}", productId);
+        return convertToDTO(updatedInventory);
+    }
+
+    public ProductInventoryDTO reserveByProductAndWarehouse(Long productId, Long warehouseId, Integer quantity) {
+        log.info("Reserving {} units for product ID: {} at warehouse ID: {}", quantity, productId, warehouseId);
+
+        ProductInventory inventory = inventoryRepository
+                .findByProductIdAndWarehouseId(productId, warehouseId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ProductErrorCode.INVENTORY_NOT_FOUND,
+                        "Inventory not found for product ID: " + productId + " and warehouse ID: " + warehouseId));
+
+        if (inventory.getQuantityAvailable() < quantity) {
+            throw new IllegalArgumentException("Insufficient stock to reserve at warehouse ID: " + warehouseId
+                    + ". Available: " + inventory.getQuantityAvailable() + ", Requested: " + quantity);
+        }
+
+        inventory.setQuantityAvailable(inventory.getQuantityAvailable() - quantity);
+        inventory.setQuantityReserved(inventory.getQuantityReserved() + quantity);
+
+        ProductInventory updatedInventory = inventoryRepository.save(inventory);
+
+        log.info("Quantity reserved successfully for product ID: {} at warehouse ID: {}", productId, warehouseId);
+        return convertToDTO(updatedInventory);
+    }
+
+    public ProductInventoryDTO releaseByProductAndWarehouse(Long productId, Long warehouseId, Integer quantity) {
+        log.info("Releasing {} reserved units for product ID: {} at warehouse ID: {}", quantity, productId, warehouseId);
+
+        ProductInventory inventory = inventoryRepository
+                .findByProductIdAndWarehouseId(productId, warehouseId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ProductErrorCode.INVENTORY_NOT_FOUND,
+                        "Inventory not found for product ID: " + productId + " and warehouse ID: " + warehouseId));
+
+        if (inventory.getQuantityReserved() < quantity) {
+            throw new IllegalArgumentException("Cannot release more than reserved quantity at warehouse ID: "
+                    + warehouseId + ". Reserved: " + inventory.getQuantityReserved() + ", Requested: " + quantity);
+        }
+
+        inventory.setQuantityReserved(inventory.getQuantityReserved() - quantity);
+        inventory.setQuantityAvailable(inventory.getQuantityAvailable() + quantity);
+
+        ProductInventory updatedInventory = inventoryRepository.save(inventory);
+
+        log.info("Reserved quantity released successfully for product ID: {} at warehouse ID: {}", productId, warehouseId);
         return convertToDTO(updatedInventory);
     }
 

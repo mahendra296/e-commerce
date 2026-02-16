@@ -72,7 +72,15 @@ public class ProductInventoryController {
         return ResponseEntity.ok(ApiResponse.success("Inventory updated successfully", updatedInventory));
     }
 
-    @PatchMapping("/{id}/adjust")
+    @GetMapping("/product/{productId}/warehouse/{warehouseId}")
+    public ResponseEntity<ApiResponse<ProductInventoryDTO>> getInventoryByProductAndWarehouse(
+            @PathVariable Long productId, @PathVariable Long warehouseId) {
+        log.info("REST request to get inventory for product ID: {} and warehouse ID: {}", productId, warehouseId);
+        ProductInventoryDTO inventory = inventoryService.getInventoryByProductAndWarehouse(productId, warehouseId);
+        return ResponseEntity.ok(ApiResponse.success("Inventory retrieved successfully", inventory));
+    }
+
+    @PutMapping("/{id}/adjust")
     public ResponseEntity<ApiResponse<ProductInventoryDTO>> adjustQuantity(
             @PathVariable Long id, @RequestParam Integer quantity) {
         log.info("REST request to adjust inventory quantity for ID: {} by {}", id, quantity);
@@ -80,7 +88,7 @@ public class ProductInventoryController {
         return ResponseEntity.ok(ApiResponse.success("Inventory quantity adjusted successfully", updatedInventory));
     }
 
-    @PatchMapping("/{id}/reserve")
+    @PutMapping("/{id}/reserve")
     public ResponseEntity<ApiResponse<ProductInventoryDTO>> reserveQuantity(
             @PathVariable Long id, @RequestParam Integer quantity) {
         log.info("REST request to reserve {} units from inventory ID: {}", quantity, id);
@@ -88,7 +96,7 @@ public class ProductInventoryController {
         return ResponseEntity.ok(ApiResponse.success("Quantity reserved successfully", updatedInventory));
     }
 
-    @PatchMapping("/{id}/release")
+    @PutMapping("/{id}/release")
     public ResponseEntity<ApiResponse<ProductInventoryDTO>> releaseReservedQuantity(
             @PathVariable Long id, @RequestParam Integer quantity) {
         log.info("REST request to release {} reserved units from inventory ID: {}", quantity, id);
@@ -96,7 +104,7 @@ public class ProductInventoryController {
         return ResponseEntity.ok(ApiResponse.success("Reserved quantity released successfully", updatedInventory));
     }
 
-    @PatchMapping("/product/{productId}/reserve")
+    @PutMapping("/product/{productId}/reserve")
     public ResponseEntity<ApiResponse<ProductInventoryDTO>> reserveByProductId(
             @PathVariable Long productId, @RequestParam Integer quantity) {
         log.info("REST request to reserve {} units for product ID: {}", quantity, productId);
@@ -104,11 +112,27 @@ public class ProductInventoryController {
         return ResponseEntity.ok(ApiResponse.success("Quantity reserved successfully", updatedInventory));
     }
 
-    @PatchMapping("/product/{productId}/release")
+    @PutMapping("/product/{productId}/warehouse/{warehouseId}/reserve")
+    public ResponseEntity<ApiResponse<ProductInventoryDTO>> reserveByProductAndWarehouse(
+            @PathVariable Long productId, @PathVariable Long warehouseId, @RequestParam Integer quantity) {
+        log.info("REST request to reserve {} units for product ID: {} at warehouse ID: {}", quantity, productId, warehouseId);
+        ProductInventoryDTO updatedInventory = inventoryService.reserveByProductAndWarehouse(productId, warehouseId, quantity);
+        return ResponseEntity.ok(ApiResponse.success("Quantity reserved successfully", updatedInventory));
+    }
+
+    @PutMapping("/product/{productId}/release")
     public ResponseEntity<ApiResponse<ProductInventoryDTO>> releaseByProductId(
             @PathVariable Long productId, @RequestParam Integer quantity) {
         log.info("REST request to release {} reserved units for product ID: {}", quantity, productId);
         ProductInventoryDTO updatedInventory = inventoryService.releaseByProductId(productId, quantity);
+        return ResponseEntity.ok(ApiResponse.success("Reserved quantity released successfully", updatedInventory));
+    }
+
+    @PutMapping("/product/{productId}/warehouse/{warehouseId}/release")
+    public ResponseEntity<ApiResponse<ProductInventoryDTO>> releaseByProductAndWarehouse(
+            @PathVariable Long productId, @PathVariable Long warehouseId, @RequestParam Integer quantity) {
+        log.info("REST request to release {} reserved units for product ID: {} at warehouse ID: {}", quantity, productId, warehouseId);
+        ProductInventoryDTO updatedInventory = inventoryService.releaseByProductAndWarehouse(productId, warehouseId, quantity);
         return ResponseEntity.ok(ApiResponse.success("Reserved quantity released successfully", updatedInventory));
     }
 

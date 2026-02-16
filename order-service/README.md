@@ -2,7 +2,7 @@
 
 A RESTful microservice for managing customer orders built with Java 25, Spring Boot 3.3, and Maven.
 
-## 🏗️ Architecture
+## Architecture
 
 ### Package Structure
 ```
@@ -17,22 +17,22 @@ com.mestro
 └── enums           # Enumerations
 ```
 
-## 📋 API Endpoints
+## API Endpoints
 
 ### Order Management
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/orders` | Create a new order |
-| GET | `/orders/{orderId}` | Get order by ID |
-| GET | `/orders` | Get all orders |
-| GET | `/orders/customer/{customerId}` | Get orders by customer |
-| GET | `/orders/status/{status}` | Get orders by status |
-| GET | `/orders/date-range?startDate=&endDate=` | Get orders by date range |
-| PUT | `/orders/{orderId}` | Update order |
-| PATCH | `/orders/{orderId}/status?status=` | Update order status |
-| DELETE | `/orders/{orderId}` | Delete order |
-| GET | `/orders/customer/{customerId}/count` | Get order count by customer |
+| POST | `/api/v1/orders` | Create a new order |
+| GET | `/api/v1/orders/{orderId}` | Get order by ID |
+| GET | `/api/v1/orders` | Get all orders |
+| GET | `/api/v1/orders/customer/{customerId}` | Get orders by customer |
+| GET | `/api/v1/orders/status/{status}` | Get orders by status |
+| GET | `/api/v1/orders/date-range?startDate=&endDate=` | Get orders by date range |
+| PUT | `/api/v1/orders/{orderId}` | Update order |
+| PATCH | `/api/v1/orders/{orderId}/status?status=` | Update order status |
+| DELETE | `/api/v1/orders/{orderId}` | Delete order |
+| GET | `/api/v1/orders/customer/{customerId}/count` | Get order count by customer |
 
 ### Order Statuses
 - `PENDING` - Order created but not confirmed
@@ -43,13 +43,11 @@ com.mestro
 - `CANCELLED` - Order cancelled
 - `RETURNED` - Order returned by customer
 
-## 📝 Sample cURL Commands
+## cURL Commands / Postman Examples
 
-### Order Endpoints
-
-#### Create a new order
+### Create a New Order
 ```bash
-curl --location '{{baseURL1}}/api/v1/orders' \
+curl --location 'http://localhost:8082/api/v1/orders' \
 --header 'Content-Type: application/json' \
 --data '{
     "customerId": 1,
@@ -73,34 +71,34 @@ curl --location '{{baseURL1}}/api/v1/orders' \
 }'
 ```
 
-#### Get order by ID
+### Get Order by ID
 ```bash
-curl --location '{{baseURL1}}/api/v1/orders/1'
+curl --location 'http://localhost:8082/api/v1/orders/1'
 ```
 
-#### Get all orders
+### Get All Orders
 ```bash
-curl --location '{{baseURL1}}/api/v1/orders'
+curl --location 'http://localhost:8082/api/v1/orders'
 ```
 
-#### Get orders by customer ID
+### Get Orders by Customer ID
 ```bash
-curl --location '{{baseURL1}}/api/v1/orders/customer/1'
+curl --location 'http://localhost:8082/api/v1/orders/customer/1'
 ```
 
-#### Get orders by status
+### Get Orders by Status
 ```bash
-curl --location '{{baseURL1}}/api/v1/orders/status/PENDING'
+curl --location 'http://localhost:8082/api/v1/orders/status/PENDING'
 ```
 
-#### Get orders by date range
+### Get Orders by Date Range
 ```bash
-curl --location '{{baseURL1}}/api/v1/orders/date-range?startDate=2025-01-01T00:00:00&endDate=2025-12-31T23:59:59'
+curl --location 'http://localhost:8082/api/v1/orders/date-range?startDate=2025-01-01T00:00:00&endDate=2025-12-31T23:59:59'
 ```
 
-#### Update order
+### Update Order
 ```bash
-curl --location --request PUT '{{baseURL1}}/api/v1/orders/1' \
+curl --location --request PUT 'http://localhost:8082/api/v1/orders/1' \
 --header 'Content-Type: application/json' \
 --data '{
     "customerId": 1,
@@ -118,23 +116,22 @@ curl --location --request PUT '{{baseURL1}}/api/v1/orders/1' \
 }'
 ```
 
-#### Update order status
+### Update Order Status
 ```bash
-curl --location --request PATCH '{{baseURL1}}/api/v1/orders/1/status?status=CONFIRMED'
+curl --location --request PATCH 'http://localhost:8082/api/v1/orders/1/status?status=CONFIRMED'
 ```
 
-#### Delete order
+### Delete Order
 ```bash
-curl --location --request DELETE '{{baseURL1}}/api/v1/orders/1'
+curl --location --request DELETE 'http://localhost:8082/api/v1/orders/1'
 ```
 
-#### Get order count by customer
+### Get Order Count by Customer
 ```bash
-curl --location '{{baseURL1}}/api/v1/orders/customer/1/count'
+curl --location 'http://localhost:8082/api/v1/orders/customer/1/count'
 ```
 
-
-## 🐳 Running with Docker
+## Running with Docker
 
 ### Prerequisites
 - Docker installed and running
@@ -186,7 +183,7 @@ docker rm order-service orderdb
 docker network rm order-network
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Database Configuration
 Edit `src/main/resources/application.yml`:

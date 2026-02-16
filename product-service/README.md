@@ -4,13 +4,14 @@ A comprehensive Product Catalog Microservice built with Java 25, Spring Boot, an
 
 ## Features
 
-- ✅ Category Management (CRUD operations)
-- ✅ Product Management (CRUD operations)
-- ✅ Inventory Management (Stock tracking, reservations)
-- ✅ RESTful API with standardized responses
-- ✅ Global Exception Handling
-- ✅ Input Validation
-- ✅ Database relationships (One-to-Many, Many-to-One)
+- Category Management (CRUD operations)
+- Product Management (CRUD operations)
+- Inventory Management (Stock tracking, reservations)
+- Warehouse Management (CRUD operations)
+- RESTful API with standardized responses
+- Global Exception Handling
+- Input Validation
+- Database relationships (One-to-Many, Many-to-One)
 
 ## Technology Stack
 
@@ -89,7 +90,7 @@ Or run the JAR file:
 java -jar target/product-microservice-1.0.0.jar
 ```
 
-The application will start on `http://localhost:8081`
+The application will start on `http://localhost:8083`
 
 ## API Endpoints
 
@@ -97,45 +98,60 @@ The application will start on `http://localhost:8081`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/categories` | Create a new category |
-| GET | `/api/categories/{id}` | Get category by ID |
-| GET | `/api/categories` | Get all categories |
-| GET | `/api/categories/active` | Get active categories |
-| GET | `/api/categories/subcategories/{parentId}` | Get subcategories |
-| PUT | `/api/categories/{id}` | Update category |
-| PATCH | `/api/categories/{id}/toggle-status` | Toggle category status |
-| DELETE | `/api/categories/{id}` | Delete category |
+| POST | `/api/v1/categories` | Create a new category |
+| GET | `/api/v1/categories/{id}` | Get category by ID |
+| GET | `/api/v1/categories` | Get all categories |
+| GET | `/api/v1/categories/active` | Get active categories |
+| GET | `/api/v1/categories/subcategories/{parentId}` | Get subcategories |
+| PUT | `/api/v1/categories/{id}` | Update category |
+| PATCH | `/api/v1/categories/{id}/toggle-status` | Toggle category status |
+| DELETE | `/api/v1/categories/{id}` | Delete category |
 
 ### Product Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/products` | Create a new product |
-| GET | `/api/products/{id}` | Get product by ID |
-| GET | `/api/products/sku/{sku}` | Get product by SKU |
-| GET | `/api/products` | Get all products |
-| GET | `/api/products/active` | Get active products |
-| GET | `/api/products/category/{categoryId}` | Get products by category |
-| GET | `/api/products/search?keyword={keyword}` | Search products |
-| PUT | `/api/products/{id}` | Update product |
-| PATCH | `/api/products/{id}/toggle-status` | Toggle product status |
-| DELETE | `/api/products/{id}` | Delete product |
+| POST | `/api/v1/products` | Create a new product |
+| GET | `/api/v1/products/{id}` | Get product by ID |
+| GET | `/api/v1/products/sku/{sku}` | Get product by SKU |
+| GET | `/api/v1/products` | Get all products |
+| GET | `/api/v1/products/active` | Get active products |
+| GET | `/api/v1/products/category/{categoryId}` | Get products by category |
+| GET | `/api/v1/products/search?keyword={keyword}` | Search products |
+| PUT | `/api/v1/products/{id}` | Update product |
+| PATCH | `/api/v1/products/{id}/toggle-status` | Toggle product status |
+| DELETE | `/api/v1/products/{id}` | Delete product |
 
 ### Inventory Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/inventories` | Create inventory |
-| GET | `/api/inventories/{id}` | Get inventory by ID |
-| GET | `/api/inventories` | Get all inventories |
-| GET | `/api/inventories/product/{productId}` | Get inventories by product |
-| GET | `/api/inventories/low-stock` | Get low stock items |
-| GET | `/api/inventories/product/{productId}/total` | Get total quantity |
-| PUT | `/api/inventories/{id}` | Update inventory |
-| PATCH | `/api/inventories/{id}/adjust?quantity={qty}` | Adjust quantity |
-| PATCH | `/api/inventories/{id}/reserve?quantity={qty}` | Reserve quantity |
-| PATCH | `/api/inventories/{id}/release?quantity={qty}` | Release reserved |
-| DELETE | `/api/inventories/{id}` | Delete inventory |
+| POST | `/api/v1/inventories` | Create inventory |
+| GET | `/api/v1/inventories/{id}` | Get inventory by ID |
+| GET | `/api/v1/inventories` | Get all inventories |
+| GET | `/api/v1/inventories/product/{productId}` | Get inventories by product |
+| GET | `/api/v1/inventories/low-stock` | Get low stock items |
+| GET | `/api/v1/inventories/product/{productId}/total` | Get total quantity |
+| PUT | `/api/v1/inventories/{id}` | Update inventory |
+| PATCH | `/api/v1/inventories/{id}/adjust?quantity={qty}` | Adjust quantity |
+| PATCH | `/api/v1/inventories/{id}/reserve?quantity={qty}` | Reserve quantity |
+| PATCH | `/api/v1/inventories/{id}/release?quantity={qty}` | Release reserved |
+| PATCH | `/api/v1/inventories/product/{productId}/reserve?quantity={qty}` | Reserve by product |
+| PATCH | `/api/v1/inventories/product/{productId}/release?quantity={qty}` | Release by product |
+| DELETE | `/api/v1/inventories/{id}` | Delete inventory |
+
+### Warehouse Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/warehouses` | Create a new warehouse |
+| GET | `/api/v1/warehouses/{id}` | Get warehouse by ID |
+| GET | `/api/v1/warehouses` | Get all warehouses |
+| GET | `/api/v1/warehouses/active` | Get active warehouses |
+| GET | `/api/v1/warehouses/city/{city}` | Get warehouses by city |
+| PUT | `/api/v1/warehouses/{id}` | Update warehouse |
+| PATCH | `/api/v1/warehouses/{id}/toggle-status` | Toggle warehouse status |
+| DELETE | `/api/v1/warehouses/{id}` | Delete warehouse |
 
 ## API Response Format
 
@@ -162,47 +178,297 @@ The application will start on `http://localhost:8081`
 }
 ```
 
-## Sample Requests
+## cURL Commands / Postman Examples
 
-### Create Category
+### Category Endpoints
+
+#### Create Category
 ```bash
-curl -X POST http://localhost:8081/api/categories \
-  -H "Content-Type: application/json" \
-  -d '{
+curl --location 'http://localhost:8083/api/v1/categories' \
+--header 'Content-Type: application/json' \
+--data '{
     "name": "Electronics",
     "description": "Electronic devices and accessories",
+    "parentCategoryId": null,
+    "imageUrl": "https://example.com/electronics.png",
     "isActive": true
-  }'
+}'
 ```
 
-### Create Product
+#### Get Category by ID
 ```bash
-curl -X POST http://localhost:8081/api/products \
-  -H "Content-Type: application/json" \
-  -d '{
+curl --location 'http://localhost:8083/api/v1/categories/1'
+```
+
+#### Get All Categories
+```bash
+curl --location 'http://localhost:8083/api/v1/categories'
+```
+
+#### Get Active Categories
+```bash
+curl --location 'http://localhost:8083/api/v1/categories/active'
+```
+
+#### Get Subcategories
+```bash
+curl --location 'http://localhost:8083/api/v1/categories/subcategories/1'
+```
+
+#### Update Category
+```bash
+curl --location --request PUT 'http://localhost:8083/api/v1/categories/1' \
+--header 'Content-Type: application/json' \
+--data '{
+    "name": "Electronics & Gadgets",
+    "description": "Updated description for electronics",
+    "parentCategoryId": null,
+    "imageUrl": "https://example.com/electronics-updated.png",
+    "isActive": true
+}'
+```
+
+#### Toggle Category Status
+```bash
+curl --location --request PATCH 'http://localhost:8083/api/v1/categories/1/toggle-status'
+```
+
+#### Delete Category
+```bash
+curl --location --request DELETE 'http://localhost:8083/api/v1/categories/1'
+```
+
+---
+
+### Product Endpoints
+
+#### Create Product
+```bash
+curl --location 'http://localhost:8083/api/v1/products' \
+--header 'Content-Type: application/json' \
+--data '{
     "categoryId": 1,
     "sku": "LAPTOP-001",
     "name": "Dell Laptop",
-    "description": "High performance laptop",
+    "description": "High performance laptop for professionals",
     "brand": "Dell",
     "price": 999.99,
     "discountPercentage": 10.00,
     "taxRate": 8.00,
+    "weight": 2.5,
+    "dimensions": "35x25x2 cm",
     "isActive": true
-  }'
+}'
 ```
 
-### Create Inventory
+#### Get Product by ID
 ```bash
-curl -X POST http://localhost:8081/api/inventories \
-  -H "Content-Type: application/json" \
-  -d '{
+curl --location 'http://localhost:8083/api/v1/products/1'
+```
+
+#### Get Product by SKU
+```bash
+curl --location 'http://localhost:8083/api/v1/products/sku/LAPTOP-001'
+```
+
+#### Get All Products
+```bash
+curl --location 'http://localhost:8083/api/v1/products'
+```
+
+#### Get Active Products
+```bash
+curl --location 'http://localhost:8083/api/v1/products/active'
+```
+
+#### Get Products by Category
+```bash
+curl --location 'http://localhost:8083/api/v1/products/category/1'
+```
+
+#### Search Products
+```bash
+curl --location 'http://localhost:8083/api/v1/products/search?keyword=laptop'
+```
+
+#### Update Product
+```bash
+curl --location --request PUT 'http://localhost:8083/api/v1/products/1' \
+--header 'Content-Type: application/json' \
+--data '{
+    "categoryId": 1,
+    "sku": "LAPTOP-001",
+    "name": "Dell Laptop Pro",
+    "description": "Updated high performance laptop",
+    "brand": "Dell",
+    "price": 1099.99,
+    "discountPercentage": 15.00,
+    "taxRate": 8.00,
+    "weight": 2.3,
+    "dimensions": "34x24x1.8 cm",
+    "isActive": true
+}'
+```
+
+#### Toggle Product Status
+```bash
+curl --location --request PATCH 'http://localhost:8083/api/v1/products/1/toggle-status'
+```
+
+#### Delete Product
+```bash
+curl --location --request DELETE 'http://localhost:8083/api/v1/products/1'
+```
+
+---
+
+### Inventory Endpoints
+
+#### Create Inventory
+```bash
+curl --location 'http://localhost:8083/api/v1/inventories' \
+--header 'Content-Type: application/json' \
+--data '{
     "productId": 1,
     "warehouseId": 1,
     "quantityAvailable": 100,
     "quantityReserved": 0,
     "reorderLevel": 20
-  }'
+}'
+```
+
+#### Get Inventory by ID
+```bash
+curl --location 'http://localhost:8083/api/v1/inventories/1'
+```
+
+#### Get All Inventories
+```bash
+curl --location 'http://localhost:8083/api/v1/inventories'
+```
+
+#### Get Inventories by Product
+```bash
+curl --location 'http://localhost:8083/api/v1/inventories/product/1'
+```
+
+#### Get Low Stock Inventories
+```bash
+curl --location 'http://localhost:8083/api/v1/inventories/low-stock'
+```
+
+#### Get Total Available Quantity for Product
+```bash
+curl --location 'http://localhost:8083/api/v1/inventories/product/1/total'
+```
+
+#### Update Inventory
+```bash
+curl --location --request PUT 'http://localhost:8083/api/v1/inventories/1' \
+--header 'Content-Type: application/json' \
+--data '{
+    "productId": 1,
+    "warehouseId": 1,
+    "quantityAvailable": 150,
+    "quantityReserved": 10,
+    "reorderLevel": 25
+}'
+```
+
+#### Adjust Inventory Quantity
+```bash
+curl --location --request PATCH 'http://localhost:8083/api/v1/inventories/1/adjust?quantity=50'
+```
+
+#### Reserve Quantity by Inventory ID
+```bash
+curl --location --request PATCH 'http://localhost:8083/api/v1/inventories/1/reserve?quantity=10'
+```
+
+#### Release Reserved Quantity by Inventory ID
+```bash
+curl --location --request PATCH 'http://localhost:8083/api/v1/inventories/1/release?quantity=5'
+```
+
+#### Reserve Quantity by Product ID
+```bash
+curl --location --request PATCH 'http://localhost:8083/api/v1/inventories/product/1/reserve?quantity=10'
+```
+
+#### Release Reserved Quantity by Product ID
+```bash
+curl --location --request PATCH 'http://localhost:8083/api/v1/inventories/product/1/release?quantity=5'
+```
+
+#### Delete Inventory
+```bash
+curl --location --request DELETE 'http://localhost:8083/api/v1/inventories/1'
+```
+
+---
+
+### Warehouse Endpoints
+
+#### Create Warehouse
+```bash
+curl --location 'http://localhost:8083/api/v1/warehouses' \
+--header 'Content-Type: application/json' \
+--data '{
+    "name": "Main Warehouse",
+    "location": "123 Industrial Park, Building A",
+    "city": "New York",
+    "state": "NY",
+    "country": "USA",
+    "zipCode": "10001",
+    "capacity": 5000,
+    "isActive": true
+}'
+```
+
+#### Get Warehouse by ID
+```bash
+curl --location 'http://localhost:8083/api/v1/warehouses/1'
+```
+
+#### Get All Warehouses
+```bash
+curl --location 'http://localhost:8083/api/v1/warehouses'
+```
+
+#### Get Active Warehouses
+```bash
+curl --location 'http://localhost:8083/api/v1/warehouses/active'
+```
+
+#### Get Warehouses by City
+```bash
+curl --location 'http://localhost:8083/api/v1/warehouses/city/New%20York'
+```
+
+#### Update Warehouse
+```bash
+curl --location --request PUT 'http://localhost:8083/api/v1/warehouses/1' \
+--header 'Content-Type: application/json' \
+--data '{
+    "name": "Main Warehouse - Expanded",
+    "location": "123 Industrial Park, Building A & B",
+    "city": "New York",
+    "state": "NY",
+    "country": "USA",
+    "zipCode": "10001",
+    "capacity": 10000,
+    "isActive": true
+}'
+```
+
+#### Toggle Warehouse Status
+```bash
+curl --location --request PATCH 'http://localhost:8083/api/v1/warehouses/1/toggle-status'
+```
+
+#### Delete Warehouse
+```bash
+curl --location --request DELETE 'http://localhost:8083/api/v1/warehouses/1'
 ```
 
 ## Testing
@@ -219,10 +485,17 @@ mvn test
 - `PRODUCT_NOT_FOUND` - Product does not exist
 - `PRODUCT_SKU_EXISTS` - SKU already in use
 - `INVENTORY_NOT_FOUND` - Inventory record not found
+- `WAREHOUSE_NOT_FOUND` - Warehouse does not exist
 - `VALIDATION_ERROR` - Input validation failed
 - `INTERNAL_SERVER_ERROR` - Unexpected server error
 
 ## Features in Detail
+
+### Warehouse Management
+- Create and manage multiple warehouses
+- Track warehouse capacity
+- Filter by city and active status
+- Soft delete with active/inactive toggle
 
 ### Inventory Management
 - Track quantity available and reserved

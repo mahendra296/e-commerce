@@ -2,6 +2,7 @@ package com.mestro.service;
 
 import com.mestro.common.client.ProductServiceClient;
 import com.mestro.common.dto.ApiResponse;
+import com.mestro.common.dto.InventoryResponse;
 import com.mestro.common.dto.ProductResponse;
 import com.mestro.common.enums.CommonErrorCode;
 import com.mestro.common.exception.BusinessException;
@@ -58,6 +59,7 @@ public class OrderServiceImpl implements OrderService {
         for (OrderItemDTO itemDTO : orderDTO.getOrderItems()) {
             OrderItem orderItem = OrderItem.builder()
                     .productId(itemDTO.getProductId())
+                    .warehouseId(itemDTO.getWarehouseId())
                     .productName(itemDTO.getProductName())
                     .quantity(itemDTO.getQuantity())
                     .unitPrice(itemDTO.getUnitPrice())
@@ -152,6 +154,7 @@ public class OrderServiceImpl implements OrderService {
             for (OrderItemDTO itemDTO : orderDTO.getOrderItems()) {
                 OrderItem orderItem = OrderItem.builder()
                         .productId(itemDTO.getProductId())
+                        .warehouseId(itemDTO.getWarehouseId())
                         .productName(itemDTO.getProductName())
                         .quantity(itemDTO.getQuantity())
                         .unitPrice(itemDTO.getUnitPrice())
@@ -253,15 +256,33 @@ public class OrderServiceImpl implements OrderService {
 
             // Check inventory availability
             try {
-                ApiResponse<Integer> inventoryResponse =
-                        productServiceClient.getTotalAvailableQuantity(item.getProductId());
-                if (inventoryResponse.isSuccess() && inventoryResponse.getData() != null) {
-                    int available = inventoryResponse.getData();
-                    if (available < item.getQuantity()) {
-                        throw new BusinessException(
-                                CommonErrorCode.VALIDATION_ERROR,
-                                "Insufficient stock for product ID: " + item.getProductId() + ". Available: "
-                                        + available + ", Requested: " + item.getQuantity());
+                if (item.getWarehouseId() != null) {
+                    // Check stock at specific warehouse
+                    ApiResponse<InventoryResponse> inventoryResponse =
+                            productServiceClient.getInventoryByProductAndWarehouse(
+                                    item.getProductId(), item.getWarehouseId());
+                    if (inventoryResponse.isSuccess() && inventoryResponse.getData() != null) {
+                        int available = inventoryResponse.getData().getQuantityAvailable();
+                        if (available < item.getQuantity()) {
+                            throw new BusinessException(
+                                    CommonErrorCode.VALIDATION_ERROR,
+                                    "Insufficient stock for product ID: " + item.getProductId()
+                                            + " at warehouse ID: " + item.getWarehouseId()
+                                            + ". Available: " + available + ", Requested: " + item.getQuantity());
+                        }
+                    }
+                } else {
+                    // Check total stock across all warehouses
+                    ApiResponse<Integer> inventoryResponse =
+                            productServiceClient.getTotalAvailableQuantity(item.getProductId());
+                    if (inventoryResponse.isSuccess() && inventoryResponse.getData() != null) {
+                        int available = inventoryResponse.getData();
+                        if (available < item.getQuantity()) {
+                            throw new BusinessException(
+                                    CommonErrorCode.VALIDATION_ERROR,
+                                    "Insufficient stock for product ID: " + item.getProductId() + ". Available: "
+                                            + available + ", Requested: " + item.getQuantity());
+                        }
                     }
                 }
             } catch (BusinessException e) {
@@ -280,21 +301,32 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItemDTO> reserved = new ArrayList<>();
         try {
             for (OrderItemDTO item : orderItems) {
-                productServiceClient.reserveByProductId(item.getProductId(), item.getQuantity());
+                if (item.getWarehouseId() != null) {
+                    productServiceClient.reserveByProductAndWarehouse(
+                            item.getProductId(), item.getWarehouseId(), item.getQuantity());
+                } else {
+                    productServiceClient.reserveByProductId(item.getProductId(), item.getQuantity());
+                }
                 reserved.add(item);
                 log.info(
-                        "Inventory reserved for product ID: {}, quantity: {}", item.getProductId(), item.getQuantity());
+                        "Inventory reserved for product ID: {}, warehouse ID: {}, quantity: {}",
+                        item.getProductId(), item.getWarehouseId(), item.getQuantity());
             }
         } catch (Exception e) {
             // Rollback already reserved inventory
             log.error("Error reserving inventory, rolling back reservations", e);
             for (OrderItemDTO reservedItem : reserved) {
                 try {
-                    productServiceClient.releaseByProductId(reservedItem.getProductId(), reservedItem.getQuantity());
+                    if (reservedItem.getWarehouseId() != null) {
+                        productServiceClient.releaseByProductAndWarehouse(
+                                reservedItem.getProductId(), reservedItem.getWarehouseId(), reservedItem.getQuantity());
+                    } else {
+                        productServiceClient.releaseByProductId(reservedItem.getProductId(), reservedItem.getQuantity());
+                    }
                 } catch (Exception rollbackEx) {
                     log.error(
-                            "Failed to rollback inventory reservation for product ID: {}",
-                            reservedItem.getProductId(),
+                            "Failed to rollback inventory reservation for product ID: {}, warehouse ID: {}",
+                            reservedItem.getProductId(), reservedItem.getWarehouseId(),
                             rollbackEx);
                 }
             }
@@ -307,15 +339,20 @@ public class OrderServiceImpl implements OrderService {
         if (order.getOrderItems() != null) {
             for (OrderItem item : order.getOrderItems()) {
                 try {
-                    productServiceClient.releaseByProductId(item.getProductId(), item.getQuantity());
+                    if (item.getWarehouseId() != null) {
+                        productServiceClient.releaseByProductAndWarehouse(
+                                item.getProductId(), item.getWarehouseId(), item.getQuantity());
+                    } else {
+                        productServiceClient.releaseByProductId(item.getProductId(), item.getQuantity());
+                    }
                     log.info(
-                            "Inventory released for product ID: {}, quantity: {}",
-                            item.getProductId(),
+                            "Inventory released for product ID: {}, warehouse ID: {}, quantity: {}",
+                            item.getProductId(), item.getWarehouseId(),
                             item.getQuantity());
                 } catch (Exception e) {
                     log.error(
-                            "Failed to release inventory for product ID: {}. Manual intervention may be required.",
-                            item.getProductId(),
+                            "Failed to release inventory for product ID: {}, warehouse ID: {}. Manual intervention may be required.",
+                            item.getProductId(), item.getWarehouseId(),
                             e);
                 }
             }

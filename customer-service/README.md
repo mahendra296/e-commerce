@@ -143,15 +143,15 @@ docker compose up -d --build
 | PUT | `/api/v1/customers/{customerId}/addresses/{addressId}` | Update an address |
 | DELETE | `/api/v1/customers/{customerId}/addresses/{addressId}` | Delete an address |
 
-## Testing the API
+## cURL Commands / Postman Examples
 
-### Using cURL
+### Customer Endpoints
 
 #### Create a Customer
 ```bash
-curl -X POST {{baseURL}}/api/v1/customers \
-  -H "Content-Type: application/json" \
-  -d '{
+curl --location 'http://localhost:8081/api/v1/customers' \
+--header 'Content-Type: application/json' \
+--data '{
     "firstName": "John",
     "lastName": "Doe",
     "email": "john.doe@example.com",
@@ -159,29 +159,29 @@ curl -X POST {{baseURL}}/api/v1/customers \
     "phone": "+1234567890",
     "gender": "Male",
     "notes": "VIP customer"
-  }'
+}'
 ```
 
 #### Get Customer by ID
 ```bash
-curl {{baseURL}}/api/v1/customers/1
+curl --location 'http://localhost:8081/api/v1/customers/1'
 ```
 
 #### Get Customer by Email
 ```bash
-curl {{baseURL}}/api/v1/customers/email/john.doe@example.com
+curl --location 'http://localhost:8081/api/v1/customers/email/john.doe@example.com'
 ```
 
 #### Get All Customers
 ```bash
-curl {{baseURL}}/api/v1
+curl --location 'http://localhost:8081/api/v1'
 ```
 
 #### Update a Customer
 ```bash
-curl -X PUT {{baseURL}}/api/v1/customers/1 \
-  -H "Content-Type: application/json" \
-  -d '{
+curl --location --request PUT 'http://localhost:8081/api/v1/customers/1' \
+--header 'Content-Type: application/json' \
+--data '{
     "firstName": "John",
     "lastName": "Doe",
     "email": "john.doe@example.com",
@@ -189,19 +189,23 @@ curl -X PUT {{baseURL}}/api/v1/customers/1 \
     "phone": "+9876543210",
     "gender": "Male",
     "notes": "Updated notes"
-  }'
+}'
 ```
 
 #### Delete a Customer
 ```bash
-curl -X DELETE {{baseURL}}/api/v1/customers/1
+curl --location --request DELETE 'http://localhost:8081/api/v1/customers/1'
 ```
+
+---
+
+### Customer Address Endpoints
 
 #### Create an Address
 ```bash
-curl -X POST {{baseURL}}/api/v1/customers/1/addresses \
-  -H "Content-Type: application/json" \
-  -d '{
+curl --location 'http://localhost:8081/api/v1/customers/1/addresses' \
+--header 'Content-Type: application/json' \
+--data '{
     "addressType": "HOME",
     "street": "123 Main Street",
     "city": "New York",
@@ -209,24 +213,24 @@ curl -X POST {{baseURL}}/api/v1/customers/1/addresses \
     "zipCode": "10001",
     "country": "USA",
     "isDefault": true
-  }'
+}'
 ```
 
 #### Get All Addresses for a Customer
 ```bash
-curl {{baseURL}}/api/v1/customers/1/addresses
+curl --location 'http://localhost:8081/api/v1/customers/1/addresses'
 ```
 
 #### Get Address by ID
 ```bash
-curl {{baseURL}}/api/v1/customers/1/addresses/1
+curl --location 'http://localhost:8081/api/v1/customers/1/addresses/1'
 ```
 
 #### Update an Address
 ```bash
-curl -X PUT {{baseURL}}/api/v1/customers/1/addresses/1 \
-  -H "Content-Type: application/json" \
-  -d '{
+curl --location --request PUT 'http://localhost:8081/api/v1/customers/1/addresses/1' \
+--header 'Content-Type: application/json' \
+--data '{
     "addressType": "OFFICE",
     "street": "456 Business Ave",
     "city": "San Francisco",
@@ -234,12 +238,12 @@ curl -X PUT {{baseURL}}/api/v1/customers/1/addresses/1 \
     "zipCode": "94105",
     "country": "USA",
     "isDefault": false
-  }'
+}'
 ```
 
 #### Delete an Address
 ```bash
-curl -X DELETE {{baseURL}}/api/v1/customers/1/addresses/1
+curl --location --request DELETE 'http://localhost:8081/api/v1/customers/1/addresses/1'
 ```
 
 ## Error Codes
@@ -275,17 +279,17 @@ Error response:
 
 ## Features
 
-- ✅ RESTful API design
-- ✅ CRUD operations for customers and addresses
-- ✅ Input validation
-- ✅ Common response structure
-- ✅ Global exception handling
-- ✅ Audit fields (createdAt, updatedAt)
-- ✅ One-to-many relationship (Customer → Addresses)
-- ✅ Email uniqueness validation
-- ✅ Proper HTTP status codes
-- ✅ Lombok for reduced boilerplate
-- ✅ Transaction management
+- RESTful API design
+- CRUD operations for customers and addresses
+- Input validation
+- Common response structure
+- Global exception handling
+- Audit fields (createdAt, updatedAt)
+- One-to-many relationship (Customer -> Addresses)
+- Email uniqueness validation
+- Proper HTTP status codes
+- Lombok for reduced boilerplate
+- Transaction management
 
 ## License
 
