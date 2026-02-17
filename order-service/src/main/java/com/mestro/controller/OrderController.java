@@ -1,6 +1,7 @@
 package com.mestro.controller;
 
 import com.mestro.common.dto.ApiResponse;
+import com.mestro.common.dto.PageResponseDTO;
 import com.mestro.dto.OrderDTO;
 import com.mestro.enums.OrderStatus;
 import com.mestro.service.OrderService;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,17 +46,18 @@ public class OrderController {
 
     @GetMapping
     @Operation(summary = "Get all orders", description = "Retrieves all orders in the system")
-    public ResponseEntity<ApiResponse<List<OrderDTO>>> getAllOrders() {
+    public ResponseEntity<ApiResponse<PageResponseDTO<OrderDTO>>> getAllOrders(Pageable pageable) {
         log.info("REST request to get all orders");
-        List<OrderDTO> orders = orderService.getAllOrders();
+        PageResponseDTO<OrderDTO> orders = orderService.getAllOrders(pageable);
         return ResponseEntity.ok(ApiResponse.success("Orders retrieved successfully", orders));
     }
 
     @GetMapping("/customer/{customerId}")
     @Operation(summary = "Get orders by customer ID", description = "Retrieves all orders for a specific customer")
-    public ResponseEntity<ApiResponse<List<OrderDTO>>> getOrdersByCustomerId(@PathVariable Long customerId) {
+    public ResponseEntity<ApiResponse<PageResponseDTO<OrderDTO>>> getOrdersByCustomerId(
+            @PathVariable Long customerId, Pageable pageable) {
         log.info("REST request to get orders for customer: {}", customerId);
-        List<OrderDTO> orders = orderService.getOrdersByCustomerId(customerId);
+        PageResponseDTO<OrderDTO> orders = orderService.getOrdersByCustomerId(customerId, pageable);
         return ResponseEntity.ok(ApiResponse.success("Customer orders retrieved successfully", orders));
     }
 

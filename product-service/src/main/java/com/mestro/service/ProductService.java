@@ -1,7 +1,9 @@
 package com.mestro.service;
 
+import com.mestro.common.dto.PageResponseDTO;
 import com.mestro.common.exception.ResourceAlreadyExistsException;
 import com.mestro.common.exception.ResourceNotFoundException;
+import com.mestro.common.utils.GeneralUtils;
 import com.mestro.dto.ProductDTO;
 import com.mestro.dto.ProductImageDTO;
 import com.mestro.dto.ProductInventoryDTO;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,10 +88,20 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProductDTO> getAllProducts() {
+    public PageResponseDTO<ProductDTO> getAllProducts(Pageable pageable) {
         log.info("Fetching all products");
-
-        return productRepository.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
+        Page<Product> pageProducts = productRepository.findAll(pageable);
+        List<ProductDTO> list =
+                pageProducts.getContent().stream().map(this::convertToDTO).toList();
+        return GeneralUtils.pageableResponse(
+                list,
+                pageProducts.getNumber(),
+                pageProducts.getSize(),
+                pageProducts.getTotalElements(),
+                pageProducts.getTotalPages(),
+                pageProducts.isFirst(),
+                pageProducts.isLast(),
+                pageable);
     }
 
     @Transactional(readOnly = true)

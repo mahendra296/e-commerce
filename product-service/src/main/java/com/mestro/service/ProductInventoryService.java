@@ -244,7 +244,8 @@ public class ProductInventoryService {
     }
 
     public ProductInventoryDTO releaseByProductAndWarehouse(Long productId, Long warehouseId, Integer quantity) {
-        log.info("Releasing {} reserved units for product ID: {} at warehouse ID: {}", quantity, productId, warehouseId);
+        log.info(
+                "Releasing {} reserved units for product ID: {} at warehouse ID: {}", quantity, productId, warehouseId);
 
         ProductInventory inventory = inventoryRepository
                 .findByProductIdAndWarehouseId(productId, warehouseId)
@@ -262,7 +263,10 @@ public class ProductInventoryService {
 
         ProductInventory updatedInventory = inventoryRepository.save(inventory);
 
-        log.info("Reserved quantity released successfully for product ID: {} at warehouse ID: {}", productId, warehouseId);
+        log.info(
+                "Reserved quantity released successfully for product ID: {} at warehouse ID: {}",
+                productId,
+                warehouseId);
         return convertToDTO(updatedInventory);
     }
 

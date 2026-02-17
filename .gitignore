@@ -18,3 +18,4 @@ product-service/nul
 common-service/.claude/settings.local.json
 common-service/nul
 common-service/target/*
+common-service/.idea/*

@@ -1,14 +1,15 @@
 package com.mestro.controller;
 
 import com.mestro.common.dto.ApiResponse;
+import com.mestro.common.dto.PageResponseDTO;
 import com.mestro.dto.CustomerDTO;
 import com.mestro.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -85,11 +86,10 @@ public class CustomerController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
             description = "Customers retrieved successfully")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CustomerDTO>>> getAllCustomers() {
-        List<CustomerDTO> customers = customerService.getAllCustomers();
-        ApiResponse<List<CustomerDTO>> response = ApiResponse.success("Customers retrieved successfully", customers);
-        return ResponseEntity.ok(response);
+    @GetMapping("/customers")
+    public ResponseEntity<ApiResponse<PageResponseDTO<CustomerDTO>>> getAllCustomers(Pageable pageable) {
+        PageResponseDTO<CustomerDTO> allCustomers = customerService.getAllCustomers(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Customers retrieved successfully", allCustomers));
     }
 
     @Operation(summary = "Update a customer", description = "Updates an existing customer with the provided details")

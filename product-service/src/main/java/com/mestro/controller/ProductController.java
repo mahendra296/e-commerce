@@ -1,12 +1,14 @@
 package com.mestro.controller;
 
 import com.mestro.common.dto.ApiResponse;
+import com.mestro.common.dto.PageResponseDTO;
 import com.mestro.dto.ProductDTO;
 import com.mestro.service.ProductService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,9 +44,9 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductDTO>>> getAllProducts() {
+    public ResponseEntity<ApiResponse<PageResponseDTO<ProductDTO>>> getAllProducts(Pageable pageable) {
         log.info("REST request to get all products");
-        List<ProductDTO> products = productService.getAllProducts();
+        PageResponseDTO<ProductDTO> products = productService.getAllProducts(pageable);
         return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", products));
     }
 

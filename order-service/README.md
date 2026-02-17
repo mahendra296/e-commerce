@@ -78,12 +78,12 @@ curl --location 'http://localhost:8082/api/v1/orders/1'
 
 ### Get All Orders
 ```bash
-curl --location 'http://localhost:8082/api/v1/orders'
+curl --location 'http://localhost:8082/api/v1/orders?page=0&size=10'
 ```
 
 ### Get Orders by Customer ID
 ```bash
-curl --location 'http://localhost:8082/api/v1/orders/customer/1'
+curl --location 'http://localhost:8082/api/v1/orders/customer/1?page=0&size=10'
 ```
 
 ### Get Orders by Status

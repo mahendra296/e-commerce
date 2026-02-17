@@ -124,14 +124,14 @@ docker compose up -d --build
 
 ### Customer APIs
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/customers` | Create a customer |
-| GET | `/api/v1/customers/{id}` | Get customer by ID |
+| Method | Endpoint                          | Description |
+|--------|-----------------------------------|-------------|
+| POST | `/api/v1/customers`               | Create a customer |
+| GET | `/api/v1/customers/{id}`          | Get customer by ID |
 | GET | `/api/v1/customers/email/{email}` | Get customer by email |
-| GET | `/api/v1` | Get all customers |
-| PUT | `/api/v1/customers/{id}` | Update a customer |
-| DELETE | `/api/v1/customers/{id}` | Delete a customer |
+| GET | `/api/v1/customers`                        | Get all customers |
+| PUT | `/api/v1/customers/{id}`          | Update a customer |
+| DELETE | `/api/v1/customers/{id}`          | Delete a customer |
 
 ### Customer Address APIs
 
@@ -174,7 +174,7 @@ curl --location 'http://localhost:8081/api/v1/customers/email/john.doe@example.c
 
 #### Get All Customers
 ```bash
-curl --location 'http://localhost:8081/api/v1'
+curl --location 'http://localhost:8081/api/v1/customers?page=0&size=10'
 ```
 
 #### Update a Customer

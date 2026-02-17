@@ -115,8 +115,13 @@ public class ProductInventoryController {
     @PutMapping("/product/{productId}/warehouse/{warehouseId}/reserve")
     public ResponseEntity<ApiResponse<ProductInventoryDTO>> reserveByProductAndWarehouse(
             @PathVariable Long productId, @PathVariable Long warehouseId, @RequestParam Integer quantity) {
-        log.info("REST request to reserve {} units for product ID: {} at warehouse ID: {}", quantity, productId, warehouseId);
-        ProductInventoryDTO updatedInventory = inventoryService.reserveByProductAndWarehouse(productId, warehouseId, quantity);
+        log.info(
+                "REST request to reserve {} units for product ID: {} at warehouse ID: {}",
+                quantity,
+                productId,
+                warehouseId);
+        ProductInventoryDTO updatedInventory =
+                inventoryService.reserveByProductAndWarehouse(productId, warehouseId, quantity);
         return ResponseEntity.ok(ApiResponse.success("Quantity reserved successfully", updatedInventory));
     }
 
@@ -131,8 +136,13 @@ public class ProductInventoryController {
     @PutMapping("/product/{productId}/warehouse/{warehouseId}/release")
     public ResponseEntity<ApiResponse<ProductInventoryDTO>> releaseByProductAndWarehouse(
             @PathVariable Long productId, @PathVariable Long warehouseId, @RequestParam Integer quantity) {
-        log.info("REST request to release {} reserved units for product ID: {} at warehouse ID: {}", quantity, productId, warehouseId);
-        ProductInventoryDTO updatedInventory = inventoryService.releaseByProductAndWarehouse(productId, warehouseId, quantity);
+        log.info(
+                "REST request to release {} reserved units for product ID: {} at warehouse ID: {}",
+                quantity,
+                productId,
+                warehouseId);
+        ProductInventoryDTO updatedInventory =
+                inventoryService.releaseByProductAndWarehouse(productId, warehouseId, quantity);
         return ResponseEntity.ok(ApiResponse.success("Reserved quantity released successfully", updatedInventory));
     }
 

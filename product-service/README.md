@@ -273,7 +273,7 @@ curl --location 'http://localhost:8083/api/v1/products/sku/LAPTOP-001'
 
 #### Get All Products
 ```bash
-curl --location 'http://localhost:8083/api/v1/products'
+curl --location 'http://localhost:8083/api/v1/products?page=0&size=10'
 ```
 
 #### Get Active Products
