@@ -3,10 +3,16 @@ package com.mestro.common.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @MappedSuperclass
 @Data
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 public abstract class BaseEntity {
 
     @Id

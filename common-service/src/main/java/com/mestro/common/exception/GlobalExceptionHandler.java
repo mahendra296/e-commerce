@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -85,7 +86,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(BusinessException.class)
+    @ExceptionHandler({BusinessException.class, MissingServletRequestParameterException.class})
     public ResponseEntity<ApiResponse<Object>> handleBusinessException(
             BusinessException ex, HttpServletRequest request) {
         log.error("BusinessException: {}", ex.getMessage());
